@@ -1,10 +1,8 @@
-﻿//using Microsoft.AspNetCore.Authentication;
-//using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web;
 using System.Threading.Tasks;
 using System.DirectoryServices.AccountManagement;
+using System.DirectoryServices.Protocols;
 
 namespace azureAD.Controllers
 {
@@ -38,20 +36,34 @@ namespace azureAD.Controllers
 
             try
             {
-                using (PrincipalContext pc = new PrincipalContext(ContextType.Domain, "NETORGFT6811883.onmicrosoft.com"))
+                using (PrincipalContext pc = new PrincipalContext(ContextType.Domain, "macquires.com")) //NETORGFT6811883.onmicrosoft.com
+
                 {
                     isValid = pc.ValidateCredentials(model.UserName, model.Password);
                 }
             }
-            catch (Exception e)
+            catch (PrincipalServerDownException ex)
             {
-                // Log exception
-                isValid = false;
+                // Log specific PrincipalServerDownException
+                // Consider using a logging framework like Serilog or NLog for detailed logging
+                Console.WriteLine($"PrincipalServerDownException: {ex.Message}");
+            }
+            catch (LdapException ex)
+            {
+                // Log specific LdapException
+                Console.WriteLine($"LdapException: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                // Log any other exceptions
+                Console.WriteLine($"Exception: {ex.Message}");
             }
 
             return isValid;
         }
+
     }
+
     public class LoginRequest
     {
         public string UserName { get; set; }
@@ -65,4 +77,3 @@ namespace azureAD.Controllers
         public string[] Errors { get; set; }
     }
 }
-
